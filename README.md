@@ -13,7 +13,7 @@ A PHP web application that displays users' favorite games based on their favorit
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-username/favorite-games-web.git
+   git clone https://github.com/tangerinegmv/favorite-games-web.git
    ```
 2. Install dependencies (if any).
 
