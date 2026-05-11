@@ -5,7 +5,7 @@
 <main class="container">
     <article class="container py-5 h-100">
         <section class="row d-flex justify-content-center align-items-center h-100">
-            <form action="php/logueo.php" method="post" class="col-12 col-md-8 col-lg-6 col-xl-5">
+            <form action="php/.php" method="post" class="col-12 col-md-8 col-lg-6 col-xl-5">
                 <fieldset class="card bg-dark text-white" style="border-radius: 1rem;">
                     <section class="card-body p-5 text-center">
                         <h2 class="fw-bold mb-2">INICIAR SESIÓN</h2>
