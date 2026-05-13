@@ -2,8 +2,12 @@
     session_start();
     $ruta = '../';
     require("encabezado.php");
+    require_once("SecurityHelper.php");
+    
     if (!empty($_SESSION['usuario'])) {
         include 'conexion.php';
+        SecurityHelper::initSecureSession();
+        $csrf_token = SecurityHelper::generateCSRFToken();
         $cnn = conectar();   
 ?>
 
@@ -14,12 +18,16 @@
         </section>
         <article class="col-9 listado pt-2">
             <h2 class="col-12 text-center mt-4">Preferencias</h2>
-            <!-- Obtener los géneros mediante una consulta SQL (si así lo prefiere) -->
+            
             <form action="guardar-pref.php" method="post" class="col-5 mt-2 mb-2 p-2 bg-light border" >
                 <legend class="text-center bg-secondary p-2">Género favorito</legend>
+                
+                <!-- CSRF Token Protection -->
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8'); ?>" />
+                
                 <label class="form-label mt-3">Elija el género:</label>
-                <select class="form-select" name="" id="">  
-
+                <select class="form-select" name="genero" id="genero" required>  
+                    <option value="">-- Seleccione un género --</option>
             <?php 
                 if ($cnn) {
                    $sql = 'SELECT DISTINCT(genero) FROM juego ORDER BY genero';
@@ -30,10 +38,9 @@
                    $cantFilas = mysqli_stmt_num_rows($sentencia);
                    if ($cantFilas>0) {
                     while (mysqli_stmt_fetch($sentencia)) {
-                        echo '<option value="'. $genero . '">'. $genero . '</option>';
+                        echo '<option value="'. htmlspecialchars($genero, ENT_QUOTES, 'UTF-8') . '">'. htmlspecialchars($genero, ENT_QUOTES, 'UTF-8') . '</option>';
                     }
-                    
-                }
+                    }
                 }
                 ?>
                 </select>
@@ -52,7 +59,3 @@
     header("refresh:0;url=../index.php");
 }
 ?>    
-                                          
-                                    
-                                
-        
