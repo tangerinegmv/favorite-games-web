@@ -1,13 +1,11 @@
 <?php
-session_start();
+require_once("SecurityHelper.php");
+SecurityHelper::initSecureSession();
+SecurityHelper::requireAdmin();
 $ruta = '../';
 require("encabezado.php");
-require_once("SecurityHelper.php");
 
-if (!empty($_SESSION['usuario'])) {
-    // Initialize secure session and generate CSRF token
-    SecurityHelper::initSecureSession();
-    $csrf_token = SecurityHelper::generateCSRFToken();
+$csrf_token = SecurityHelper::generateCSRFToken();
 ?>
 
 <main class="container">
@@ -50,7 +48,4 @@ if (!empty($_SESSION['usuario'])) {
 
 <?php
     require("pie.php");
-}else {
-    header("refresh:0;url=../index.php");
-}
 ?>

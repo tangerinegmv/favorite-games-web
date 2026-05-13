@@ -4,6 +4,7 @@ require_once 'SecurityHelper.php';
 require_once 'conexion.php';
 
 SecurityHelper::initSecureSession();
+SecurityHelper::requireAdmin();
 
 // Validate CSRF token
 if (empty($_POST['csrf_token']) || !SecurityHelper::validateCSRFToken($_POST['csrf_token'])) {
@@ -75,32 +76,26 @@ if (mysqli_stmt_num_rows($check_stmt) > 0) {
     exit;
 }
 
-// Handle file upload
+// Handle file upload if present
 if (!empty($_FILES['foto']['size'])) {
-    // Validate file upload
     $validation = SecurityHelper::validateFileUpload($_FILES['foto']);
-    
     if (!$validation['valid']) {
         desconectar($cnn);
         header("refresh:3;url=usuario_alta.php");
         echo '<p>Error: ' . htmlspecialchars($validation['error'], ENT_QUOTES, 'UTF-8') . '</p>';
         exit;
     }
-    
-    // Sanitize filename
+
     $foto_nombre = SecurityHelper::sanitizeFilename($_FILES['foto']['name'], $usuario);
-    
     if (!$foto_nombre) {
         desconectar($cnn);
         header("refresh:3;url=usuario_alta.php");
         echo '<p>Error: Nombre de archivo inválido.</p>';
         exit;
     }
-    
-    // Move uploaded file
+
     $rutaO = $_FILES['foto']['tmp_name'];
     $destino = '../img/usuarios/' . $foto_nombre;
-    
     if (!move_uploaded_file($rutaO, $destino)) {
         desconectar($cnn);
         header("refresh:3;url=usuario_alta.php");
@@ -110,7 +105,6 @@ if (!empty($_FILES['foto']['size'])) {
     }
 }
 
-// Insert new user
 $sql = 'INSERT INTO usuario (usuario, pass, tipo, foto, activado) VALUES (?, ?, ?, ?, "S")';
 $sentencia = mysqli_prepare($cnn, $sql);
 mysqli_stmt_bind_param($sentencia, 'ssss', $usuario, $clave, $tipo, $foto_nombre);

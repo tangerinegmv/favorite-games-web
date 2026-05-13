@@ -254,11 +254,13 @@ class SecurityHelper
     {
         // Only set session options if session hasn't started
         if (session_status() === PHP_SESSION_NONE) {
+            ini_set('session.use_strict_mode', 1);
+            ini_set('session.use_only_cookies', 1);
             session_set_cookie_params([
                 'lifetime' => 3600,        // 1 hour
                 'path' => '/',
                 'domain' => '',
-                'secure' => false,         // Set to true in production with HTTPS
+                'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
                 'httponly' => true,        // Prevent JavaScript access
                 'samesite' => 'Strict'     // CSRF protection
             ]);
@@ -274,6 +276,9 @@ class SecurityHelper
      */
     public static function regenerateSession()
     {
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         session_regenerate_id(true);
     }
 
@@ -284,7 +289,70 @@ class SecurityHelper
      */
     public static function validateSession()
     {
-        return isset($_SESSION['usuario']) && !empty($_SESSION['usuario']);
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        if (empty($_SESSION['usuario']) || empty($_SESSION['user_id']) || empty($_SESSION['user_type'])) {
+            return false;
+        }
+
+        if (empty($_SESSION['fingerprint']) || $_SESSION['fingerprint'] !== self::getSessionFingerprint()) {
+            return false;
+        }
+
+        // Optional timeout: 30 minutes of inactivity
+        if (!empty($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > 1800) {
+            return false;
+        }
+
+        $_SESSION['last_activity'] = time();
+        return true;
+    }
+
+    /**
+     * Create a fingerprint for the current session
+     * 
+     * @return string
+     */
+    public static function getSessionFingerprint()
+    {
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $ipSegment = 'unknown';
+
+        if (!empty($_SERVER['REMOTE_ADDR'])) {
+            $parts = explode('.', $_SERVER['REMOTE_ADDR']);
+            $ipSegment = count($parts) >= 2 ? ($parts[0] . '.' . $parts[1]) : $_SERVER['REMOTE_ADDR'];
+        }
+
+        return hash('sha256', $userAgent . '|' . $ipSegment);
+    }
+
+    /**
+     * Require a logged-in session or redirect to login
+     *
+     * @return void
+     */
+    public static function requireLogin()
+    {
+        if (!self::validateSession()) {
+            header('Location: ../index.php');
+            exit;
+        }
+    }
+
+    /**
+     * Require administrator privileges or show error
+     *
+     * @return void
+     */
+    public static function requireAdmin()
+    {
+        if (!self::validateSession() || ($_SESSION['user_type'] ?? '') !== 'Administrador') {
+            header('refresh:3;url=usuario_listado.php');
+            echo '<p>Error: No tienes permiso para realizar esta acción.</p>';
+            exit;
+        }
     }
 
     /**

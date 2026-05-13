@@ -79,8 +79,19 @@ if (!empty($_POST['pass'])) {
     $sentencia = mysqli_prepare($cnn, $sql);
     mysqli_stmt_bind_param($sentencia, 'i', $id);
     mysqli_stmt_execute($sentencia);
+    mysqli_stmt_store_result($sentencia);
+
+    if (mysqli_stmt_num_rows($sentencia) !== 1) {
+        mysqli_stmt_close($sentencia);
+        desconectar($cnn);
+        header("refresh:3;url=usuario_listado.php");
+        echo '<p>Error: Usuario no encontrado.</p>';
+        exit;
+    }
+
     mysqli_stmt_bind_result($sentencia, $clave);
     mysqli_stmt_fetch($sentencia);
+    mysqli_stmt_close($sentencia);
 }
 
 // Handle file upload

@@ -1,6 +1,10 @@
 <?php
-session_start();
+require_once 'SecurityHelper.php';
+
+SecurityHelper::initSecureSession();
 if (!empty($_SESSION['usuario'])) {
-    header("refresh:1;url=../index.php"); 
-    session_destroy();
+    SecurityHelper::destroySession();
 }
+
+header('refresh:1;url=../index.php');
+exit;

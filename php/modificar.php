@@ -2,7 +2,14 @@
     $ruta = '../';
     require("encabezado.php");
     require_once("SecurityHelper.php");
-    include 'conexion.php';
+    SecurityHelper::initSecureSession();
+    require_once 'conexion.php';
+    
+    if (!SecurityHelper::validateSession()) {
+        header('refresh:0;url=../index.php');
+        exit;
+    }
+
     $cnn = conectar();
     
     if ($cnn && isset($_GET['id_usuario'])) {

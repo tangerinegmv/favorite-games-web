@@ -69,7 +69,7 @@ if (!$cnn) {
 
 try {
     // Query to get user info
-    $sql = 'SELECT id_usuario, pass, foto FROM usuario WHERE usuario = ? AND activado = \'S\'';
+    $sql = 'SELECT id_usuario, pass, tipo, foto FROM usuario WHERE usuario = ? AND activado = \'S\'';
     $sentencia = mysqli_prepare($cnn, $sql);
     
     if (!$sentencia) {
@@ -82,7 +82,7 @@ try {
         throw new Exception('Execute error: ' . mysqli_error($cnn));
     }
     
-    mysqli_stmt_bind_result($sentencia, $id_usuario, $hashPassword, $foto);
+    mysqli_stmt_bind_result($sentencia, $id_usuario, $hashPassword, $tipoUsuario, $foto);
     mysqli_stmt_store_result($sentencia);
     $cantFilas = mysqli_stmt_num_rows($sentencia);
     
@@ -102,7 +102,10 @@ try {
             // Set session variables
             $_SESSION['usuario'] = $usuForm;
             $_SESSION['user_id'] = $id_usuario;
-            $_SESSION['foto'] = $foto ?? 'usuario_default.png';
+            $_SESSION['user_type'] = $tipoUsuario;
+            $_SESSION['foto'] = $foto ?: 'usuario_default.png';
+            $_SESSION['fingerprint'] = SecurityHelper::getSessionFingerprint();
+            $_SESSION['last_activity'] = time();
             
             // Log successful login
             SecurityHelper::logSecurityEvent('Successful login', 'info', ['user_id' => $id_usuario]);

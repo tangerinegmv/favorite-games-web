@@ -3,6 +3,7 @@
 require_once 'SecurityHelper.php';
 
 SecurityHelper::initSecureSession();
+SecurityHelper::requireLogin();
 
 // Validate CSRF token
 if (empty($_POST['csrf_token']) || !SecurityHelper::validateCSRFToken($_POST['csrf_token'])) {
@@ -35,7 +36,7 @@ $cookie_value = htmlspecialchars($genero, ENT_QUOTES, 'UTF-8');
 setcookie($cookie_name, $cookie_value, [
     'expires' => time() + (86400 * 30),  // 30 days
     'path' => '/',
-    'secure' => false,  // Set to true in production with HTTPS
+    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
     'httponly' => true,  // Prevent JavaScript access
     'samesite' => 'Strict'
 ]);

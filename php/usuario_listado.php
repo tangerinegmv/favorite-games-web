@@ -1,11 +1,14 @@
 <?php
+require_once 'SecurityHelper.php';
 session_start();
-    $ruta = '../';
-    require("encabezado.php");
-    include 'conexion.php';
-    if (!empty($_SESSION['usuario'])) {
-    $cnn = conectar();
-    
+SecurityHelper::initSecureSession();
+SecurityHelper::requireLogin();
+$ruta = '../';
+require("encabezado.php");
+include 'conexion.php';
+$csrf_token = SecurityHelper::generateCSRFToken();
+$cnn = conectar();
+
 ?>
 
 <main class="container">
@@ -41,9 +44,26 @@ session_start();
                     if ($resultado) {
                         while (mysqli_stmt_fetch($sentencia)) {
                             if ($foto == '') {
-                            $foto = 'usuario_default.png';
+                                $foto = 'usuario_default.png';
                             }
-                            echo '<tr><td><img src="../img/usuarios/' . $foto . '" alt="foto perfil"></td><td>' . $usu . '</td><td>' . $tipo . '</td><td><a href="modificar.php?id_usuario=' . $id . '"><img src="../img/modificar.png" alt="modificar"></a></td><td><a href="confirmar.php?id_usuario=' . $id . '"><img src="../img/eliminar.png" alt="eliminar"></a></td><td><a href="desactivar.php?id_usuario=' . $id . '"><img src="../img/desactivar.png" alt="desactivar"></a></td>';
+                            $fotoSafe = htmlspecialchars($foto, ENT_QUOTES, 'UTF-8');
+                            $usuarioSafe = htmlspecialchars($usu, ENT_QUOTES, 'UTF-8');
+                            $tipoSafe = htmlspecialchars($tipo, ENT_QUOTES, 'UTF-8');
+                            $idSafe = htmlspecialchars($id, ENT_QUOTES, 'UTF-8');
+
+                            echo '<tr>';
+                            echo '<td><img src="../img/usuarios/' . $fotoSafe . '" alt="foto perfil"></td>';
+                            echo '<td>' . $usuarioSafe . '</td>';
+                            echo '<td>' . $tipoSafe . '</td>';
+                            echo '<td><a href="modificar.php?id_usuario=' . $idSafe . '"><img src="../img/modificar.png" alt="modificar"></a></td>';
+                            echo '<td><a href="confirmar.php?id_usuario=' . $idSafe . '"><img src="../img/eliminar.png" alt="eliminar"></a></td>';
+                            echo '<td>';
+                            echo '<form action="desactivar.php" method="post" style="display:inline;">';
+                            echo '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8') . '" />';
+                            echo '<input type="hidden" name="id_usuario" value="' . $idSafe . '" />';
+                            echo '<button type="submit" class="btn btn-link p-0 border-0 bg-transparent"><img src="../img/desactivar.png" alt="desactivar"></button>';
+                            echo '</form>';
+                            echo '</td>';
                             echo '</tr>';
                         }
                     }
@@ -61,7 +81,4 @@ session_start();
 
 <?php
     require("pie.php");
-}else {
-    header("refresh:0;url=../index.php");
-}
 ?>
