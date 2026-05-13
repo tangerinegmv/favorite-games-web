@@ -27,7 +27,7 @@ class Environment
         }
 
         if ($path === null) {
-            $path = dirname(__DIR__) . '/.env';
+            $path = dirname(__DIR__) . '/config/.env';
         }
 
         if (!file_exists($path)) {
